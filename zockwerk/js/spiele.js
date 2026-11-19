@@ -1,5 +1,5 @@
 /* Zockwerk – Spiele und Bereiche aus Zockmix mit ihrem Platz im Bild img/kacheln.webp (10 Spalten, 8 Zeilen).
-   NICHT VON HAND ÄNDERN – wird von tools/kacheln.js erzeugt (Stand 2026-11-17, 64 Spiele).
+   NICHT VON HAND ÄNDERN – wird von tools/kacheln.js erzeugt (Stand 2026-11-19, 64 Spiele).
    games: [id, Deutsch, Englisch, Rubrik (action | knobel | strat), Bild-Nr.]   apps: [id, Deutsch, Englisch, Bild-Nr.] */
 window.ZHG = { cols: 10, rows: 8,
   games: [
@@ -61,7 +61,7 @@ window.ZHG = { cols: 10, rows: 8,
     ['chess', 'Schach', 'Chess', 'strat', 55],
     ['runner', 'Dino-Lauf', 'Dino Dodge', 'strat', 56],
     ['curling', 'Eis-Curling', 'Ice Curling', 'strat', 57],
-    ['crash', 'Car Crash', 'Car Crash', 'strat', 58],
+    ['crash', 'Rempel-Arena', 'Bumper Arena', 'strat', 58],
     ['paint', 'Farbkampf', 'Paint Battle', 'strat', 59],
     ['sneak', 'Heimlich-Hauen', 'Sneaky Bonk', 'strat', 60],
     ['bounce', 'Hüpfburg-Rangelei', 'Bouncy Brawl', 'strat', 61],
