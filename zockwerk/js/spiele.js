@@ -1,5 +1,5 @@
 /* Zockwerk – Spiele und Bereiche aus Zockmix mit ihrem Platz im Bild img/kacheln.webp (10 Spalten, 8 Zeilen).
-   NICHT VON HAND ÄNDERN – wird von tools/kacheln.js erzeugt (Stand 2026-11-19, 64 Spiele).
+   NICHT VON HAND ÄNDERN – wird von tools/kacheln.js erzeugt (Stand 2026-11-20, 64 Spiele).
    games: [id, Deutsch, Englisch, Rubrik (action | knobel | strat), Bild-Nr.]   apps: [id, Deutsch, Englisch, Bild-Nr.] */
 window.ZHG = { cols: 10, rows: 8,
   games: [
@@ -78,7 +78,7 @@ window.ZHG = { cols: 10, rows: 8,
     ['handysim', 'Handy-Simulator', 'Phone Simulator', 70],
     ['pcsim', 'PC-Simulator', 'PC Simulator', 71],
     ['konsolensim', 'Konsolen-Simulator', 'Console Simulator', 72],
-    ['burg', 'Burg-Wächter', 'Castle Guard', 73],
+    ['burg', 'Insel-Wacht', 'Isle Guard', 73],
     ['spukmix', 'Spukmix', 'Spukmix', 74],
     ['lernmix', 'Lernmix', 'Lernmix', 75]
   ]

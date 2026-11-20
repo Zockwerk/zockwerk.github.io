@@ -33,7 +33,7 @@
   // Bereiche: [Schlüssel, Deutsch, Englisch, Farbe]
   const AREAS = [
     ['spiele', 'Spiele', 'Games', '#ff8a4d'], ['zocki', 'Zocki', 'Zocki', '#ff9fd0'], ['chillmix', 'Chillmix', 'Chillmix', '#5fe0a0'],
-    ['spukmix', 'Spukmix', 'Spukmix', '#b894ff'], ['baumix', 'Baumix', 'Baumix', '#ffc24d'], ['burg', 'Burg-Wächter', 'Castle Guard', '#d8ad72'],
+    ['spukmix', 'Spukmix', 'Spukmix', '#b894ff'], ['baumix', 'Baumix', 'Baumix', '#ffc24d'], ['burg', 'Insel-Wacht', 'Isle Guard', '#d8ad72'],
     ['beatmix', 'Beatmix', 'Beatmix', '#ff6fae'], ['malmix', 'Malmix', 'Malmix', '#ffe066'], ['quizmix', 'Quizmix', 'Quizmix', '#5fd8ff'],
     ['lernmix', 'Lernmix', 'Lernmix', '#4fe3c1'], ['sim', 'Simulatoren', 'Simulators', '#86a8ff'],
     ['app', 'Startseite & Einstellungen', 'Home & settings', '#b7c2e8'], ['sonst', 'Etwas anderes', 'Something else', '#a3adcc']
