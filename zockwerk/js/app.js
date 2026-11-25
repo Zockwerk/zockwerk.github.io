@@ -111,6 +111,9 @@
   const ACT = b => b.s === 'offen' || b.s === 'pruef' || b.s === 'arbeit';   // Fehler, die es gerade noch gibt
   const byId = id => helpers.find(h => h.id === id);
   const findAny = id => bugs.find(x => x.id === id) || ideas.find(x => x.id === id) || posts.find(x => x.id === id) || guides.find(x => x.id === id);
+  // Gruß vom Entwickler (daten/ich.js) – Unterschrift auch unter Beiträgen und Antworten
+  const dev = ZH.dev || null;
+  const devName = () => F(dev, 'n') || T('Dein Zockmix-Entwickler', 'Your Zockmix developer');
 
   // ---------- Likes/Stimmen ohne Server: gemerkt auf dem Handy (zmh-likes { id: { b: Zahl beim Liken, s: 1 = verschickt } }),
   // gezählt werden sie erst, wenn man sie per E-Mail schickt (Leiste #vbar). Angezeigt: offizielle Zahl (Beitrag l, Idee v, Fehler n),
@@ -199,7 +202,7 @@
   LS.set('seen', today);
   const isNew = (...ds) => !!prevSeen && ds.some(d => d && d > prevSeen);
   const newBadge = (...ds) => (isNew(...ds) ? ' <span class="new">' + T('NEU', 'NEW') + '</span>' : '');
-  const dots = { start: posts.some(p => isNew(p.d)) || guides.some(a => isNew(a.d)), fehler: bugs.some(b => ACT(b) && isNew(b.d, b.u)), ideen: ideas.some(x => isNew(x.d, x.u)) };
+  const dots = { start: posts.some(p => isNew(p.d)) || guides.some(a => isNew(a.d)) || !!(dev && isNew(dev.d)), fehler: bugs.some(b => ACT(b) && isNew(b.d, b.u)), ideen: ideas.some(x => isNew(x.d, x.u)) };
 
   // ---------- Zustand ----------
   const TABS = ['start', 'fehler', 'melden', 'ideen', 'helfer'];
@@ -208,7 +211,7 @@
   const PAGES = { artikel: 'start' };
   const tabOf = v => PAGES[v] || v, posOf = v => (PAGES[v] ? TABS.indexOf(PAGES[v]) + 0.5 : TABS.indexOf(v));
   let cur = '', focusId = '', introDone = false;
-  const st = { bf: 'alle', ba: '', bq: '', idf: 'alle', thx: false, burst: false, gq: '', allPosts: false };
+  const st = { bf: 'alle', ba: '', bq: '', idf: 'alle', thx: false, burst: false, gq: '', allPosts: false, favPick: false, fq: '' };
   const D0 = () => ({ k: 'fehler', ref: '', a: '', g: '', w: '', x: '', st: '', oft: '', dev: '', ver: '', log: '', nick: '', pub: false });
   let draft = Object.assign(D0(), LS.get('draft', {}) || {});
   let saveT = 0;
@@ -259,7 +262,8 @@
       '<h1 class="logo" aria-label="Zockwerk"><span class="l1">' + letters('ZOCK', 0) + '</span><span class="l2">' + letters('WERK', 4) + '</span></h1>' +
       '<div class="hl">' + T('Die Zockmix-Werkstatt', 'The Zockmix workshop') + '</div>' +
       '<div class="balls" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>' +
-      '<p class="lead">' + T('Neuigkeiten, bekannte Fehler und Ideen rund um Zockmix – und hier kannst du uns schreiben.', 'News, known bugs and ideas all about Zockmix – and you can write to us here.') + '</p>' +
+      '<div class="hi">' + hello() + '</div>' +
+      '<p class="lead">' + T('Neuigkeiten, bekannte Fehler und Ideen rund um Zockmix – und hier kannst du mir schreiben.', 'News, known bugs and ideas all about Zockmix – and you can write to me here.') + '</p>' +
       '<div class="qbtns"><a class="btn" href="#melden" data-k="fehler">' + I('bug') + T('Fehler melden', 'Report a bug') + '</a>' +
       '<a class="btn b2" href="#melden" data-k="idee">' + I('bulb') + T('Idee schicken', 'Send an idea') + '</a></div>' +
       '<button class="btn ghost sm" id="instBtn"' + (instEv ? '' : ' hidden') + '>' + I('download') + T('Als App aufs Handy', 'Add to your phone') + '</button>' +
@@ -268,12 +272,13 @@
       '<a href="#fehler/behoben" class="stat rv" style="--c:#3ddc78">' + I('check') + '<b data-count="' + fixed + '">' + fixed + '</b><span>' + T('Fehler behoben', 'bugs fixed') + '</span></a>' +
       '<a href="#fehler" data-bf="arbeit" class="stat rv" style="--c:#5aa8ff">' + I('cog', 'spin') + '<b data-count="' + work + '">' + work + '</b><span>' + T('in Arbeit', 'in progress') + '</span></a>' +
       '<a href="#ideen" data-if="fertig" class="stat rv" style="--c:#ffc93d">' + I('sparkle') + '<b data-count="' + done + '">' + done + '</b><span>' + T('Ideen fertig', 'ideas done') + '</span></a></div>' +
+      since() + devCard() + '<section class="card fav rv" id="favbox">' + favBox() + '</section>' +
       (nowL.length || doneL.length ? '<h2 class="rv">' + I('cog') + T('Aus der Werkstatt', 'From the workshop') + '</h2><div class="card work rv">' +
         (nowL.length ? '<h3>' + T('Gerade dran', 'Working on it') + '</h3>' + nowL.map(row).join('') : '') +
         (doneL.length ? '<h3>' + T('Zuletzt fertig', 'Recently done') + '</h3>' + doneL.map(row).join('') : '') + '</div>' : '') +
       (guides.length ? '<h2 class="rv">' + I('map') + T('Zockwerk-Artikel', 'Zockwerk articles') + '<a class="h2more" href="#artikel">' + T('Alle', 'All') + I('arrow') + '</a></h2>' +
         '<div class="hrow rv">' + guides.map(gCard).join('') + '<a class="acard all" href="#artikel">' + I('arrow') + '<b>' + T('Alle Artikel', 'All articles') + '</b></a></div>' : '') +
-      '<h2 class="rv">' + I('news') + T('Neuigkeiten', 'News') + '</h2>' +
+      '<h2 class="rv" id="hnews">' + I('news') + T('Neuigkeiten', 'News') + '</h2>' +
       (posts.length ? posts.slice(0, st.allPosts ? posts.length : PN).map(post).join('') +
         (!st.allPosts && posts.length > PN ? '<button class="btn ghost wide rv" id="pmore">' + I('chev') + T('Ältere Neuigkeiten zeigen', 'Show older news') + ' (' + (posts.length - PN) + ')</button>' : '')
         : '<p class="empty">' + T('Noch keine Beiträge.', 'No posts yet.') + '</p>') +
@@ -289,9 +294,88 @@
       '<h3>' + esc(F(p, 't')) + '</h3></div></div>' +
       '<div class="tx' + (long ? ' clamp' : '') + '">' + md(x) + '</div>' +
       (long ? '<button class="more" data-more>' + T('Weiterlesen', 'Read more') + I('chev') + '</button>' : '') +
-      '<div class="pfoot">' + likeBtn(p.id, 'heart') + '</div></article>';
+      '<div class="pfoot"><span class="by">' + Z.dev('sm') + esc(devName()) + '</span>' + likeBtn(p.id, 'heart') + '</div></article>';
   }
-  const PN = 4;   // so viele Neuigkeiten zeigt der Start zuerst, der Rest kommt mit „Ältere Neuigkeiten zeigen“
+  const PN = 4;
+
+  // ---------- Persönlich: Begrüßung, „Seit deinem letzten Besuch“, Gruß vom Entwickler ----------
+  // Spitzname aus der Helfer-Karte oder aus dem Melde-Formular – beides nur auf diesem Handy gemerkt.
+  function hello() {
+    if (!prevSeen) return T('Willkommen im Zockwerk!', 'Welcome to Zockwerk!');
+    const h = new Date().getHours(), me = myHelper(), nick = ((me && me.n) || String(draft.nick || '')).trim();
+    const late = h < 5 || h >= 22, g = late ? T('Noch wach', 'Still up') : h < 11 ? T('Guten Morgen', 'Good morning') : h < 18 ? T('Hallo', 'Hi') : T('Guten Abend', 'Good evening');
+    return esc(g + (nick ? ', ' + nick : '') + (late ? '?' : '!'));
+  }
+  function since() {
+    if (!prevSeen) return '';
+    const np = posts.filter(p => isNew(p.d)).length + guides.filter(a => isNew(a.d)).length, nf = bugs.filter(b => b.s === 'fertig' && isNew(b.f)).length,
+      nb = bugs.filter(b => ACT(b) && isNew(b.d, b.u)).length, ni = ideas.filter(x => isNew(x.d, x.u)).length;
+    const c = [];
+    if (np) c.push('<a href="#start" data-go="hnews">' + I('news') + np + ' ' + T(np === 1 ? 'neuer Beitrag' : 'neue Beiträge', np === 1 ? 'new post' : 'new posts') + '</a>');
+    if (nf) c.push('<a href="#fehler/behoben">' + I('check') + nf + ' ' + T('Fehler behoben', nf === 1 ? 'bug fixed' : 'bugs fixed') + '</a>');
+    if (nb) c.push('<a href="#fehler">' + I('bug') + nb + ' ' + T(nb === 1 ? 'neuer Fehler' : 'neue Fehler', nb === 1 ? 'new bug' : 'new bugs') + '</a>');
+    if (ni) c.push('<a href="#ideen">' + I('bulb') + ni + ' ' + T(ni === 1 ? 'Idee mit Neuem' : 'Ideen mit Neuem', ni === 1 ? 'idea update' : 'idea updates') + '</a>');
+    return c.length ? '<div class="since rv"><span>' + I('sparkle') + T('Seit deinem letzten Besuch', 'Since your last visit') + '</span><div class="sch">' + c.join('') + '</div></div>' : '';
+  }
+  function devCard() {
+    if (!dev) return '';
+    const now = F(dev, 'now');
+    return '<section class="card devcard rv" id="hallo"><div class="dvh">' + Z.dev('big') + '<div><div class="meta">' + T('Vom Entwickler', 'From the developer') + newBadge(dev.d) + '</div>' +
+      '<h3>' + esc(F(dev, 't')) + '</h3></div></div><div class="tx">' + md(F(dev, 'x')) + '</div>' +
+      (now ? '<div class="dnow"><i class="live" aria-hidden="true"></i><span><b>' + T('Gerade baue ich:', 'Right now I’m building:') + '</b> ' + inl(now) + '</span></div>' : '') +
+      '<div class="dsig"><span>– ' + esc(devName()) + '</span><a class="btn sm" href="#melden">' + I('send') + T('Schreib mir', 'Write to me') + '</a></div></section>';
+  }
+
+  // ---------- Dein Lieblingsspiel (nur auf diesem Handy gemerkt: zmh-fav) – zeigt Fehler, Ideen und Artikel dazu ----------
+  let fav = LS.get('fav', '');
+  const favArea = id => (GAMES.some(g => g.id === id) ? 'spiele' : SIMS.includes(id) ? 'sim' : AREAS.some(a => a[0] === id) ? id : 'sonst');
+  function favRel(id) {
+    // Spiele: nur Einträge zu genau diesem Spiel; Simulatoren: dazu alles zu „Simulatoren“ ohne bestimmten Simulator; Zocki, Spukmix …: alles aus dem Bereich
+    const a = favArea(id), hit = x => gameOf(x) === id || (a !== 'spiele' && x.a === a && (a !== 'sim' || !gameOf(x)));
+    const L = [];
+    bugs.filter(b => b.s !== 'kein' && hit(b)).forEach(b => L.push({ o: ACT(b) ? 0 : 3, d: b.f || b.u || b.d, h: '#fehler/' + b.id, x: b, s: ACT(b) ? BS[b.s] : null,
+      sub: ACT(b) ? T('Fehler', 'Bug') : T('Behoben', 'Fixed') + ' · ' + fmtDate(b.f || b.d) }));
+    ideas.filter(x => x.s !== 'nein' && hit(x)).forEach(x => L.push({ o: x.s === 'fertig' ? 3 : 1, d: x.u || x.d, h: '#ideen/' + x.id, x, s: x.s === 'fertig' ? null : IS[x.s],
+      sub: x.s === 'fertig' ? T('Idee ist fertig', 'Idea is done') : T('Idee', 'Idea') }));
+    guides.filter(hit).forEach(g => L.push({ o: 2, d: g.d, h: '#artikel/' + g.id, x: g, s: null, art: 1, sub: T('Artikel', 'Article') }));
+    return L.sort((p, q) => (p.o - q.o) || String(q.d).localeCompare(String(p.d))).slice(0, 5);
+  }
+  function favGrid() {
+    const q = fold(st.fq).trim(), m = x => !q || fold(x.de + ' ' + x.en).includes(q);
+    const tile = x => '<button type="button" class="gtile' + (x.id === fav ? ' on' : '') + '" data-fav="' + x.id + '">' + art(x.id) + '<span>' + esc(tName(x)) + '</span></button>';
+    const grp = (h, l) => (l.length ? '<h4>' + h + '</h4><div class="ggrid">' + l.map(tile).join('') + '</div>' : '');
+    const g = GAMES.filter(m), out = CATS.map(c => grp(T(c[1], c[2]), g.filter(x => x.cat === c[0]))).join('') +
+      grp(T('Weitere Spiele', 'More games'), g.filter(x => !CATS.some(c => c[0] === x.cat))) + grp(T('Mehr Spaß', 'More Fun'), GAPPS.filter(m));
+    return out || '<p class="empty">' + T('Kein Spiel gefunden.', 'No game found.') + '</p>';
+  }
+  function favBox() {
+    const t = fav && tileOf(fav);
+    if (st.favPick) {
+      return '<div class="fvh">' + emb('star', '#ffc93d') + '<h3>' + T('Welches ist dein Lieblingsspiel?', 'Which one is your favorite?') + '</h3>' +
+        (t ? '<button class="link sm" id="favx">' + T('Abbrechen', 'Cancel') + '</button>' : '') + '</div>' +
+        '<label class="sbox gq">' + I('search') + '<input type="search" id="fq" value="' + esc(st.fq) + '" placeholder="' + T('Spiel suchen …', 'Search for a game …') + '" aria-label="' + T('Spiel suchen', 'Search for a game') + '"></label>' +
+        '<div class="gbox" id="fgrid">' + favGrid() + '</div>';
+    }
+    if (!t) {
+      return '<div class="fvh">' + emb('star', '#ffc93d') + '<div><h3>' + T('Dein Lieblingsspiel', 'Your favorite game') + '</h3><p class="sub">' +
+        T('Such dir dein Lieblingsspiel aus – dann zeige ich dir hier alles dazu: Tipps, Fehler und Ideen.', 'Pick your favorite game – and I’ll show you everything about it right here: tips, bugs and ideas.') + '</p></div></div>' +
+        '<div class="fvpeek" aria-hidden="true">' + ['zombie', 'burg', 'zocki', 'farm', 'pcsim'].filter(tileOf).map(id => art(id)).join('') + '</div>' +
+        '<button class="btn wide" id="favgo">' + I('star') + T('Lieblingsspiel aussuchen', 'Pick your favorite') + '</button>';
+    }
+    const L = favRel(fav), a = favArea(fav);
+    const row = e => '<a class="wrow" href="' + e.h + '">' + (e.s ? pill(e.s) : '<span class="tick' + (e.art ? ' blue' : '') + '">' + I(e.art ? 'map' : 'check') + '</span>') +
+      '<span class="wt">' + esc(F(e.x, 't')) + '<small>' + e.sub + '</small></span>' + I('arrow', 'go') + '</a>';
+    return '<div class="fvtop">' + art(fav, 'fvart') + '<div class="fvt"><span class="fvk">' + I('star') + T('Dein Lieblingsspiel', 'Your favorite') + '</span><b>' + esc(tName(t)) + '</b>' +
+      '<button class="link sm" id="favgo">' + I('refresh') + T('Ändern', 'Change') + '</button></div></div>' +
+      (L.length ? L.map(row).join('') : '<p class="fvnone">' + T('Zu ' + tName(t) + ' gibt es gerade nichts Neues. Hast du eine Idee dafür?', 'Nothing new about ' + tName(t) + ' right now. Got an idea for it?') + '</p>') +
+      '<div class="acts"><a class="btn sm" href="#melden" data-k="idee" data-a="' + a + '" data-g="' + esc(fav) + '">' + I('bulb') + T('Idee dafür', 'Idea for it') + '</a>' +
+      '<a class="btn sm ghost" href="#melden" data-k="fehler" data-a="' + a + '" data-g="' + esc(fav) + '">' + I('bug') + T('Fehler melden', 'Report a bug') + '</a></div>';
+  }
+  function paintFav(scroll) {
+    const b = $('#favbox'); if (!b) return;
+    b.innerHTML = favBox(); reveal(b, true);
+    if (scroll && b.getBoundingClientRect().top < 70) b.scrollIntoView({ block: 'start', behavior: RM ? 'auto' : 'smooth' });
+  }   // so viele Neuigkeiten zeigt der Start zuerst, der Rest kommt mit „Ältere Neuigkeiten zeigen“
 
   // ---------- Zockwerk-Artikel (Startseite + Seite #artikel, Daten: daten/artikel.js) ----------
   const gArt = (a, cls) => (a.g && tileOf(a.g) ? art(a.g, cls) : areaArt(a.a, cls, a.ic));
@@ -304,7 +388,7 @@
     if (!a) {
       return head('map', '#5fd8ff', T('Zockwerk-Artikel', 'Zockwerk articles'), T('Anleitungen und Tipps rund um Zockmix – damit du noch mehr Spaß hast.', 'Guides and tips all about Zockmix – so you have even more fun.')) +
         guides.map(x => '<a class="card arow rv" href="#artikel/' + esc(x.id) + '">' + gArt(x) + '<span class="wt"><span class="am">' + kTag(PK[x.k] || PK.info) + newBadge(x.d) + '</span><b>' + esc(F(x, 't')) + '</b><small>' + esc(F(x, 's')) + '</small></span>' + I('arrow', 'go') + '</a>').join('') +
-        '<div class="card cta rv"><p>' + T('Wünschst du dir einen Artikel zu einem Thema?', 'Want an article about a topic?') + '</p><a class="btn" href="#melden" data-k="idee">' + I('bulb') + T('Schreib es uns', 'Tell us') + '</a></div>';
+        '<div class="card cta rv"><p>' + T('Wünschst du dir einen Artikel zu einem Thema?', 'Want an article about a topic?') + '</p><a class="btn" href="#melden" data-k="idee">' + I('bulb') + T('Schreib es mir', 'Tell me') + '</a></div>';
     }
     const more = guides.filter(x => x !== a);
     return '<a class="back rv" href="#artikel">' + I('arrow', 'flip') + T('Alle Artikel', 'All articles') + '</a>' +
@@ -316,8 +400,8 @@
   }
   function about() {
     return '<details class="card about rv"><summary>' + I('lock') + T('Über diese Seite', 'About this page') + I('chev', 'chev') + '</summary><div class="tx">' +
-      md(T('Das Zockwerk **sammelt keine Daten**: keine Anmeldung, keine Cookies, keine Werbung, keine Statistik. Nur auf deinem Handy merkt es sich deine Sprache, deinen Entwurf beim Melden, deine Likes und deinen Helfer-Code – das kannst du jederzeit löschen.\n\nWenn du etwas meldest, öffnet sich dein E-Mail-Programm mit dem fertigen Text. Du siehst genau, was drinsteht, und schickst es selbst ab. Wir nutzen deine E-Mail nur, um dir zu antworten.',
-        'Zockwerk **collects no data**: no sign-up, no cookies, no ads, no statistics. Only on your phone it remembers your language, your report draft, your likes and your helper code – you can delete that at any time.\n\nWhen you report something, your e-mail app opens with the finished text. You see exactly what’s in it and send it yourself. We only use your e-mail to answer you.')) +
+      md(T('Das Zockwerk **sammelt keine Daten**: keine Anmeldung, keine Cookies, keine Werbung, keine Statistik. Nur auf deinem Handy merkt es sich deine Sprache, deinen Entwurf beim Melden, dein Lieblingsspiel, deine Likes und deinen Helfer-Code – das kannst du jederzeit löschen.\n\nWenn du etwas meldest, öffnet sich dein E-Mail-Programm mit dem fertigen Text. Du siehst genau, was drinsteht, und schickst es selbst ab. Ich nutze deine E-Mail nur, um dir zu antworten.',
+        'Zockwerk **collects no data**: no sign-up, no cookies, no ads, no statistics. Only on your phone it remembers your language, your report draft, your favorite game, your likes and your helper code – you can delete that at any time.\n\nWhen you report something, your e-mail app opens with the finished text. You see exactly what’s in it and send it yourself. I only use your e-mail to answer you.')) +
       '<p class="links"><a href="' + INFO + 'datenschutz.html#' + (EN ? 'en' : 'de') + '" target="_blank" rel="noopener">' + T('Datenschutz', 'Privacy policy') + '</a>' +
       '<a href="' + INFO + 'impressum.html#' + (EN ? 'en' : 'de') + '" target="_blank" rel="noopener">' + T('Impressum', 'Legal notice') + '</a>' +
       '<a href="' + INFO + '#' + (EN ? 'en' : 'de') + '" target="_blank" rel="noopener">' + T('Über Zockmix', 'About Zockmix') + '</a></p>' +
@@ -336,8 +420,8 @@
     const used = AREAS.filter(a => act.some(b => b.a === a[0]));
     if (st.ba && !used.some(a => a[0] === st.ba)) st.ba = '';
     const hit = focusId && gone.find(b => b.id === focusId);
-    return head('bug', '#ff6b7a', T('Bekannte Fehler', 'Known bugs'), T('Diese Fehler gibt es gerade noch – wir kümmern uns darum. Ist einer behoben, verschwindet er von hier.',
-      'These bugs still exist right now – we’re on it. Once a bug is fixed, it disappears from here.')) +
+    return head('bug', '#ff6b7a', T('Bekannte Fehler', 'Known bugs'), T('Diese Fehler gibt es gerade noch – ich kümmere mich darum. Ist einer behoben, verschwindet er von hier.',
+      'These bugs still exist right now – I’m on it. Once a bug is fixed, it disappears from here.')) +
       (hit ? '<p class="fhint rv">' + I('check') + T('Dieser Fehler ist schon behoben:', 'This bug is already fixed:') + '</p>' + bug(hit) : '') +
       (act.length ? (act.length > 4 ? '<div class="tools rv"><label class="sbox">' + I('search') + '<input type="search" id="bq" value="' + esc(st.bq) + '" placeholder="' + T('Suchen …', 'Search …') + '" aria-label="' + T('Fehler suchen', 'Search bugs') + '"></label></div>' : '') +
         (used.length > 1 ? '<div class="chips achips rv" role="group" aria-label="' + T('Bereich', 'Area') + '"><button data-ba="" aria-pressed="' + !st.ba + '">' + T('Alle Bereiche', 'All areas') + '</button>' +
@@ -377,10 +461,10 @@
       '<div class="ttl">' + thumb(b) + '<h3>' + esc(F(b, 't')) + '</h3></div>' +
       '<div class="meta">' + areaTag(b.a) + (w ? '<span class="where">' + esc(w) + '</span>' : '') + '</div>' +
       (F(b, 'x') ? '<div class="tx">' + md(F(b, 'x')) + '</div>' : '') +
-      (h ? '<div class="note tip">' + I('bulb') + '<span><b>' + T('Tipp', 'Tip') + ':</b> ' + inl(h) + '</span></div>' : '') +
+      (h ? '<div class="note tip">' + I('bulb') + '<span><b>' + T('Tipp', 'Tip') + ':</b> ' + inl(h) + '</span></div>' : '') + devReply(F(b, 'r')) +
       (b.s === 'fertig' && b.f ? '<div class="note ok">' + I('check') + '<span>' + T('Behoben am', 'Fixed on') + ' ' + fmtDate(b.f) + ' – ' + T('bitte Zockmix aktualisieren.', 'please update Zockmix.') + '</span></div>' : '') +
       '<div class="ifoot">' + credit(b.by) + '<span class="acts2">' + (done ? '<button class="btn sm ghost" data-me="' + esc(b.id) + '">' + I('refresh') + T('Immer noch da?', 'Still there?') + '</button>'
-        : '<button class="link sm" data-me="' + esc(b.id) + '">' + I('pencil') + T('Mehr erzählen', 'Tell us more') + '</button>' + likeBtn(b.id, 'users')) + '</span></div>' +
+        : '<button class="link sm" data-me="' + esc(b.id) + '">' + I('pencil') + T('Mehr erzählen', 'Tell me more') + '</button>' + likeBtn(b.id, 'users')) + '</span></div>' +
       '</article>';
   }
 
@@ -389,7 +473,7 @@
   const IORD = { arbeit: 0, geplant: 1, idee: 2, fertig: 3, nein: 4 };
   function vIdeas() {
     const cnt = g => ideas.filter(x => !IGRP[g] || IGRP[g].includes(x.s)).length;
-    return head('bulb', '#ffc93d', T('Ideen & Pläne', 'Ideas & plans'), T('Was ist geplant, was bauen wir gerade, was ist schon fertig?', 'What’s planned, what are we building, what’s done?')) +
+    return head('bulb', '#ffc93d', T('Ideen & Pläne', 'Ideas & plans'), T('Was ist geplant, was baue ich gerade, was ist schon fertig?', 'What’s planned, what am I building, what’s done?')) +
       '<div class="chips rv" role="group">' + [['alle', 'Alle', 'All'], ['plan', 'Geplant', 'Planned'], ['fertig', 'Fertig', 'Done'], ['idee', 'Ideen', 'Ideas'], ['nein', 'Passt nicht', 'Not planned']]
         .map(c => '<button data-if="' + c[0] + '" aria-pressed="' + (st.idf === c[0]) + '">' + T(c[1], c[2]) + ' <small>' + cnt(c[0]) + '</small></button>').join('') + '</div>' +
       '<div id="ilist">' + ideaList() + '</div>' +
@@ -400,30 +484,32 @@
       .sort((a, b) => (IORD[a.s] - IORD[b.s]) || String(b.u || b.d).localeCompare(String(a.u || a.d)));
     return l.length ? l.map(idea).join('') : '<div class="empty rv">' + I('bulb', 'big') + '<p>' + T('Hier ist gerade nichts.', 'Nothing here right now.') + '</p></div>';
   }
+  // Antwort vom Entwickler (Feld r bei Ideen und Fehlern) als Sprechblase mit dem Entwickler-Bild
+  const devReply = r => (r ? '<div class="dreply">' + Z.dev('sm') + '<div class="bub"><b>' + T('Antwort vom Entwickler', 'Reply from the developer') + '</b>' + inl(r) + '</div></div>' : '');
   function idea(x) {
     const s = IS[x.s] || IS.idee, r = F(x, 'r'), open = x.s !== 'fertig' && x.s !== 'nein';
     return '<article class="card item rv' + (focusId === x.id ? ' hit' : '') + '" id="i-' + esc(x.id) + '" style="--c:' + s[3] + '">' +
       '<div class="ih">' + pill(s) + '<a class="iid" href="#ideen/' + esc(x.id) + '">' + esc(x.id) + '</a>' + newBadge(x.d, x.u) + '</div>' +
       '<div class="ttl">' + thumb(x) + '<h3>' + esc(F(x, 't')) + '</h3></div><div class="meta">' + areaTag(x.a) + '</div>' +
       (F(x, 'x') ? '<div class="tx">' + md(F(x, 'x')) + '</div>' : '') +
-      (r ? '<div class="note dev">' + I('chat') + '<span>' + inl(r) + '</span></div>' : '') +
+      devReply(r) +
       '<div class="ifoot">' + credit(x.by) + '<span class="acts2">' + (open ? '<button class="link sm" data-me="' + esc(x.id) + '">' + I('pencil') + T('Mehr dazu schreiben', 'Add your thoughts') + '</button>' + likeBtn(x.id, 'thumb')
         : x.s === 'fertig' ? likeBtn(x.id, 'heart') : '') + '</span></div></article>';
   }
 
   // ---------- Reiter: Melden ----------
   const findRef = id => bugs.find(b => b.id === id) || ideas.find(x => x.id === id);
-  const QL = { fehler: ['Was ist passiert?', 'What happened?', 'Erzähl genau, was du gesehen hast. Was hast du erwartet?', 'Tell us exactly what you saw. What did you expect?'],
+  const QL = { fehler: ['Was ist passiert?', 'What happened?', 'Erzähl genau, was du gesehen hast. Was hast du erwartet?', 'Tell me exactly what you saw. What did you expect?'],
     idee: ['Was ist deine Idee?', 'What’s your idea?', 'Was soll es geben? Warum wäre das toll?', 'What should be added? Why would it be great?'],
     frage: ['Deine Frage', 'Your question', 'Was möchtest du wissen?', 'What would you like to know?'],
     lob: ['Was gefällt dir?', 'What do you like?', 'Was macht dir am meisten Spaß?', 'What’s the most fun for you?'] };
   function vReport() {
     if (st.thx) return thanks();
     const d = draft, k = KINDS[d.k] ? d.k : 'fehler', ref = d.ref && findRef(d.ref);
-    const steps = [['send', 'Du schickst die E-Mail', 'You send the e-mail'], ['search', 'Wir lesen und prüfen sie', 'We read and check it'],
+    const steps = [['send', 'Du schickst die E-Mail', 'You send the e-mail'], ['search', 'Ich lese und prüfe sie', 'I read and check it'],
       ['globe', 'Sie kommt in die Liste – jeder sieht den Stand', 'It goes on the list – everyone sees its status'], ['trophy', 'Hilft sie: Punkte für dich', 'If it helps: points for you']];
-    return head('send', '#ff6fae', T('Melden', 'Report'), T('Erzähl uns, was los ist. Am Ende öffnet sich dein E-Mail-Programm mit dem fertigen Text – du schickst ihn selbst ab.',
-      'Tell us what’s going on. At the end your e-mail app opens with the finished text – you send it yourself.')) +
+    return head('send', '#ff6fae', T('Melden', 'Report'), T('Erzähl mir, was los ist. Am Ende öffnet sich dein E-Mail-Programm mit dem fertigen Text – du schickst ihn selbst ab.',
+      'Tell me what’s going on. At the end your e-mail app opens with the finished text – you send it yourself.')) +
       '<ol class="flow rv">' + steps.map((s, i) => '<li style="--i:' + i + '"><span>' + I(s[0]) + '</span><b>' + T(s[1], s[2]) + '</b></li>').join('') + '</ol>' +
       '<div class="card safe rv">' + I('shield') + '<span>' + T('<b>Wichtig:</b> Schreib keinen echten Namen, keine Adresse und keine Telefonnummer. Bist du unter 16? Dann frag einen Erwachsenen, bevor du die E-Mail abschickst.',
         '<b>Important:</b> Don’t write your real name, address or phone number. Are you under 16? Then ask an adult before you send the e-mail.') + '</span></div>' +
@@ -460,12 +546,12 @@
   function kindPart() {
     const d = draft, k = KINDS[d.k] ? d.k : 'fehler', q = QL[k], bugK = k === 'fehler';
     return '<label class="fl">' + T(q[0], q[1]) + ' <em>*</em><textarea data-f="x" rows="5" maxlength="3000" placeholder="' + T(q[2], q[3]) + '">' + esc(d.x) + '</textarea></label>' +
-    (bugK ? '<label class="fl">' + T('Wie kann man den Fehler auslösen?', 'How can we make the bug happen?') + ' <small>' + T('(Schritt für Schritt)', '(step by step)') + '</small>' +
+    (bugK ? '<label class="fl">' + T('Wie kann man den Fehler auslösen?', 'How can I make the bug happen?') + ' <small>' + T('(Schritt für Schritt)', '(step by step)') + '</small>' +
       '<textarea data-f="st" rows="3" maxlength="1500" placeholder="' + T('1. Zockmix öffnen&#10;2. …', '1. Open Zockmix&#10;2. …') + '">' + esc(d.st) + '</textarea></label>' +
       '<fieldset class="seg"><legend>' + T('Wie oft passiert das?', 'How often does it happen?') + '</legend>' +
       [['immer', 'Immer', 'Always'], ['manchmal', 'Manchmal', 'Sometimes'], ['einmal', 'Nur einmal', 'Just once']].map(o =>
         '<label' + (d.oft === o[0] ? ' class="on"' : '') + '><input type="radio" name="oft" value="' + o[0] + '"' + (d.oft === o[0] ? ' checked' : '') + '>' + T(o[1], o[2]) + '</label>').join('') + '</fieldset>' +
-      '<details class="opt"' + (d.log ? ' open' : '') + '><summary>' + I('copy') + '<span>' + T('Fehler-Liste aus Zockmix einfügen', 'Paste the error list from Zockmix') + ' <small>' + T('(hilft uns sehr)', '(helps a lot)') + '</small></span>' + I('chev', 'chev') + '</summary>' +
+      '<details class="opt"' + (d.log ? ' open' : '') + '><summary>' + I('copy') + '<span>' + T('Fehler-Liste aus Zockmix einfügen', 'Paste the error list from Zockmix') + ' <small>' + T('(hilft mir sehr)', '(helps a lot)') + '</small></span>' + I('chev', 'chev') + '</summary>' +
       '<p class="hint">' + T('In Zockmix: Einstellungen → „Hilfe für Tester“ → „Fehler-Liste“ → „Kopieren“. Dann hier lange drücken und „Einfügen“ wählen.',
         'In Zockmix: Settings → “Help for testers” → “Error list” → “Copy”. Then long-press here and choose “Paste”.') + '</p>' +
       '<textarea data-f="log" rows="4" maxlength="20000" aria-label="' + T('Fehler-Liste', 'Error list') + '">' + esc(d.log) + '</textarea></details>' : '');
@@ -507,11 +593,11 @@
     if (burst) for (let i = 0; i < 26; i++) conf += '<i style="--x:' + (Math.random() * 2 - 1).toFixed(2) + ';--r:' + Math.round(Math.random() * 720 - 360) + 'deg;--d:' + Math.round(Math.random() * 160) + 'ms;--c:' + cols[i % cols.length] + '"></i>';
     return '<div class="card thanks' + (burst ? ' burst' : '') + '"><div class="conf" aria-hidden="true">' + conf + '</div>' +
       '<svg class="okring" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34"/><path d="M25 41l10 10 20-22"/></svg>' +
-      '<h2>' + T('Danke!', 'Thank you!') + '</h2>' +
-      '<p>' + T('Hat sich dein E-Mail-Programm geöffnet? Dann tippe dort auf <b>Senden</b>. Wir lesen jede Nachricht – eine Antwort kann ein paar Tage dauern.',
-        'Did your e-mail app open? Then tap <b>Send</b> there. We read every message – an answer can take a few days.') + '</p>' +
-      '<p class="hint">' + T('Wenn wir deine Meldung aufnehmen, siehst du sie bald unter „Fehler“ oder „Ideen“. Und wenn sie uns hilft, bekommst du vielleicht einen Helfer-Code.',
-        'If we add your report, you’ll soon see it under “Bugs” or “Ideas”. And if it helps us, you might get a helper code.') + '</p>' +
+      '<h2>' + T('Danke', 'Thank you') + (String(draft.nick || '').trim() ? ', ' + esc(draft.nick.trim()) : '') + '!</h2>' +
+      '<p>' + T('Hat sich dein E-Mail-Programm geöffnet? Dann tippe dort auf <b>Senden</b>. Ich lese jede Nachricht selbst – eine Antwort kann ein paar Tage dauern.',
+        'Did your e-mail app open? Then tap <b>Send</b> there. I read every message myself – an answer can take a few days.') + '</p>' +
+      '<p class="hint">' + T('Wenn ich deine Meldung aufnehme, siehst du sie bald unter „Fehler“ oder „Ideen“. Und wenn sie mir hilft, bekommst du vielleicht einen Helfer-Code.',
+        'If I add your report, you’ll soon see it under “Bugs” or “Ideas”. And if it helps me, you might get a helper code.') + '</p>' +
       '<p class="hint">' + T('Das Formular ist jetzt leer für deine nächste Meldung. Hat sich kein E-Mail-Programm geöffnet? Dann tippe auf „Zurück zum Text“.',
         'The form is now empty for your next report. Didn’t your e-mail app open? Then tap “Back to the text”.') + '</p>' +
       '<div class="acts"><button class="btn" id="tnew">' + I('plus') + T('Neue Meldung', 'New report') + '</button><button class="btn ghost" id="tback">' + I('pencil') + T('Zurück zum Text', 'Back to the text') + '</button></div></div>';
@@ -548,7 +634,7 @@
   function check() {
     const e = [];
     if (!draft.a) e.push(T('Bitte wähle einen Bereich.', 'Please choose an area.'));
-    if (String(draft.x).trim().length < 8) e.push(T('Schreib bitte ein bisschen mehr, damit wir es verstehen.', 'Please write a little more so we understand.'));
+    if (String(draft.x).trim().length < 8) e.push(T('Schreib bitte ein bisschen mehr, damit ich es verstehe.', 'Please write a little more so I understand.'));
     const el = $('#merr');
     if (el) { el.hidden = !e.length; el.innerHTML = I('info') + '<span>' + e.map(esc).join('<br>') + '</span>'; }
     if (e.length && el) { el.scrollIntoView({ block: 'center', behavior: RM ? 'auto' : 'smooth' }); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
@@ -595,7 +681,7 @@
   }
   function codeBox() {
     return '<div class="card codebox rv"><h3>' + I('key') + T('Hast du einen Helfer-Code?', 'Do you have a helper code?') + '</h3>' +
-      '<p>' + T('Wenn deine Meldung uns hilft, schicken wir dir einen Helfer-Code. Damit siehst du hier deine eigene Helfer-Karte.', 'If your report helps us, we’ll send you a helper code. With it you can see your own helper card here.') + '</p>' +
+      '<p>' + T('Wenn deine Meldung mir hilft, schicke ich dir einen Helfer-Code. Damit siehst du hier deine eigene Helfer-Karte.', 'If your report helps me, I’ll send you a helper code. With it you can see your own helper card here.') + '</p>' +
       '<form id="cf" class="cf"><input id="cin" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ZM-XXXX-XXXX" aria-label="' + T('Helfer-Code', 'Helper code') + '">' +
       '<button class="btn">' + T('Los', 'Go') + I('arrow') + '</button></form><div class="err" id="cerr" role="alert" hidden></div></div>';
   }
@@ -682,7 +768,12 @@
   document.addEventListener('click', e => {
     const t = e.target.closest('button, a, [data-more]');
     if (!t) return;
-    if (t.dataset.k) setDraftK(t.dataset.k, '', t.dataset.a || '');
+    if (t.dataset.k) {
+      setDraftK(t.dataset.k, '', t.dataset.a || '');
+      if (t.dataset.g && pickList(draft.a).some(x => x.id === t.dataset.g)) { draft.g = t.dataset.g; LS.set('draft', draft); }
+    }
+    if (t.dataset.fav) { fav = t.dataset.fav; LS.set('fav', fav); st.favPick = false; st.fq = ''; paintFav(true); toast(T('Gemerkt!', 'Saved!'), 'star'); return; }
+    if (t.dataset.go) { e.preventDefault(); const el = document.getElementById(t.dataset.go); if (el) el.scrollIntoView({ block: 'start', behavior: RM ? 'auto' : 'smooth' }); return; }
     if (t.dataset.bf) { st.bf = t.dataset.bf; if (cur === 'fehler') { e.preventDefault(); $$('.chips button').forEach(c => c.setAttribute('aria-pressed', String(c === t))); $('#blist').innerHTML = bugList(); reveal($('#blist')); } return; }
     if (t.dataset.if) { st.idf = t.dataset.if; if (cur === 'ideen') { e.preventDefault(); $$('.chips button').forEach(c => c.setAttribute('aria-pressed', String(c === t))); $('#ilist').innerHTML = ideaList(); reveal($('#ilist')); } return; }
     if (t.dataset.ba != null && cur === 'fehler') { e.preventDefault(); st.ba = t.dataset.ba; $$('.achips button').forEach(c => c.setAttribute('aria-pressed', String(c === t))); $('#blist').innerHTML = bugList(); reveal($('#blist')); return; }
@@ -714,11 +805,13 @@
         t.replaceWith(...w.childNodes); reveal($('#view')); break;
       }
       case 'vhide': st.vbHide = unsent().length; voteBar(); break;
+      case 'favgo': st.favPick = true; st.fq = ''; paintFav(true); break;
+      case 'favx': st.favPick = false; paintFav(true); break;
       case 'cout': LS.del('code'); render('keep'); toast(T('Code vergessen.', 'Code forgotten.'), 'check'); break;
       case 'instBtn': if (instEv) { instEv.prompt(); instEv.userChoice.finally(() => { instEv = null; const b = $('#instBtn'); if (b) b.hidden = true; }); } break;
       case 'wipe':
-        if (confirm(T('Sprache, Entwurf und Helfer-Code auf diesem Handy löschen?', 'Delete language, draft and helper code on this phone?'))) {
-          ['lang', 'draft', 'sent', 'code', 'seen', 'likes'].forEach(LS.del); draft = D0(); likes = {}; toast(T('Gelöscht.', 'Deleted.'), 'check'); render('keep'); voteBar();
+        if (confirm(T('Sprache, Entwurf, Lieblingsspiel und Helfer-Code auf diesem Handy löschen?', 'Delete language, draft, favorite game and helper code on this phone?'))) {
+          ['lang', 'draft', 'sent', 'code', 'seen', 'likes', 'fav'].forEach(LS.del); draft = D0(); likes = {}; fav = ''; toast(T('Gelöscht.', 'Deleted.'), 'check'); render('keep'); voteBar();
         }
         break;
     }
@@ -726,6 +819,7 @@
   document.addEventListener('input', e => {
     const t = e.target;
     if (t.id === 'bq') { st.bq = t.value; $('#blist').innerHTML = bugList(); reveal($('#blist'), true); return; }
+    if (t.id === 'fq') { st.fq = t.value; const fg = $('#fgrid'); if (fg) { fg.innerHTML = favGrid(); fg.scrollTop = 0; } return; }
     if (t.id === 'gq') { st.gq = t.value; const gb = $('#gbox'); if (gb) { gb.innerHTML = gList(); gb.scrollTop = 0; } return; }
     if (t.dataset.f) setField(t);
   });
@@ -753,7 +847,7 @@
       const bad = msg => { er.hidden = false; er.innerHTML = I('info') + '<span>' + esc(msg) + '</span>'; er.classList.remove('shake'); void er.offsetWidth; er.classList.add('shake'); };
       if (!C.ok(v)) { bad(T('So sieht ein Helfer-Code aus: ZM-ABCD-2345', 'A helper code looks like this: ZM-ABCD-2345')); return; }
       const h = helpers.find(x => x.h === C.hash(v));
-      if (!h) { bad(T('Diesen Code kennen wir (noch) nicht. Neue Codes stehen manchmal erst nach ein paar Tagen hier.', 'We don’t know this code (yet). New codes sometimes only show up after a few days.')); return; }
+      if (!h) { bad(T('Diesen Code kenne ich (noch) nicht. Neue Codes stehen manchmal erst nach ein paar Tagen hier.', 'I don’t know this code (yet). New codes sometimes only show up after a few days.')); return; }
       LS.set('code', C.fmt(v)); render(); toast(T('Hallo ', 'Hi ') + h.n + '!', 'sparkle');
     }
   });
@@ -778,7 +872,7 @@
     document.body.classList.toggle('vb', show);
     if (!show) { bar.hidden = true; return; }
     bar.innerHTML = I('send') + '<span>' + (n === 1 ? T('1 Stimme', '1 vote') : n + ' ' + T('Stimmen', 'votes')) + ' ' + T('noch nicht geschickt', 'not sent yet') +
-      '<small>' + T('Sie zählen, wenn du sie uns schickst.', 'They count once you send them to us.') + '</small></span>' +
+      '<small>' + T('Sie zählen, wenn du sie mir schickst.', 'They count once you send them to me.') + '</small></span>' +
       '<button class="btn sm" id="vsend">' + T('Senden', 'Send') + '</button><button class="x" id="vhide" aria-label="' + T('Später', 'Later') + '">' + I('x') + '</button>';
     bar.hidden = false;
   }

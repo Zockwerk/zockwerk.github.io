@@ -63,6 +63,23 @@
   }
   let s = '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">';
   for (const k in P) s += '<symbol id="zi-' + k + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + P[k] + '</symbol>';
+  // Der Entwickler als Bild (selbst gemalt, 64 × 64, nur flache Farben): Kappe mit Zockmix-Z, Kopfhörer mit Mikro, Lächeln, pinkes Shirt mit Zahnrad-Knopf.
+  // Kein echtes Aussehen – nur eine Figur. ZHI.dev(klasse) gibt das <svg> zurück.
+  const DEV = '<circle cx="32" cy="32" r="32" fill="#4f6dff"/><circle cx="32" cy="32" r="30.4" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="3"/>' +
+    '<path d="M13.4 58C15 50 22 46 32 46s17 4 18.6 12A32 32 0 0 1 13.4 58z" fill="#ff4f9a"/><circle cx="32" cy="54" r="3.2" fill="#ffd23d"/><circle cx="32" cy="54" r="1.2" fill="#ff4f9a"/>' +
+    '<rect x="28" y="40" width="8" height="8" rx="3" fill="#eaa93e"/><circle cx="32" cy="30" r="14" fill="#ffc95a"/>' +
+    '<path d="M18 27a14 14 0 0 1 28 0z" fill="#1d2a5c"/><path d="M16.5 26h31a1.5 1.5 0 0 1 0 3h-31a1.5 1.5 0 0 1 0-3z" fill="#2c3d86"/>' +
+    '<path d="M28.6 18.2h6.8l-6.8 5.4h6.8" fill="none" stroke="#ffd23d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M17.6 31v-7a14.4 14.4 0 0 1 28.8 0v7" fill="none" stroke="#ff4f9a" stroke-width="2.4"/>' +
+    '<rect x="14.5" y="27" width="6.5" height="10.5" rx="3.2" fill="#1d2a5c"/><rect x="43" y="27" width="6.5" height="10.5" rx="3.2" fill="#1d2a5c"/>' +
+    '<rect x="16.3" y="28.8" width="2.9" height="6.9" rx="1.45" fill="#ff4f9a"/><rect x="44.8" y="28.8" width="2.9" height="6.9" rx="1.45" fill="#ff4f9a"/>' +
+    '<ellipse cx="27" cy="32.2" rx="1.9" ry="2.5" fill="#1d2a5c"/><ellipse cx="37" cy="32.2" rx="1.9" ry="2.5" fill="#1d2a5c"/>' +
+    '<circle cx="27.7" cy="31.3" r=".75" fill="#fff"/><circle cx="37.7" cy="31.3" r=".75" fill="#fff"/>' +
+    '<circle cx="23.6" cy="36.2" r="2" fill="#ff7a6a" opacity=".45"/><circle cx="40.4" cy="36.2" r="2" fill="#ff7a6a" opacity=".45"/>' +
+    '<path d="M28 37.2q4 3.6 8 0" fill="none" stroke="#1d2a5c" stroke-width="1.8" stroke-linecap="round"/>' +
+    '<path d="M17.8 37q1 4.6 7 4.6" fill="none" stroke="#1d2a5c" stroke-width="1.6" stroke-linecap="round"/><circle cx="25.4" cy="41.6" r="1.8" fill="#ff4f9a"/>';
+  s += '<symbol id="zi-dev" viewBox="0 0 64 64">' + DEV + '</symbol>';
   document.body.insertAdjacentHTML('afterbegin', s + '</svg>');
-  window.ZHI = { i: (k, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true"><use href="#zi-' + k + '"/></svg>', gear, has: k => !!P[k] };
+  window.ZHI = { i: (k, c) => '<svg class="ic' + (c ? ' ' + c : '') + '" aria-hidden="true"><use href="#zi-' + k + '"/></svg>', gear, has: k => !!P[k],
+    dev: c => '<svg class="devav' + (c ? ' ' + c : '') + '" viewBox="0 0 64 64" aria-hidden="true"><use href="#zi-dev"/></svg>' };
 })();
